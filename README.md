@@ -1,2 +1,7 @@
 # Notes4CS
-Here are some notes or labs for some open courses 
+## About Repository
+- To share some lessons and resources about some open courses
+- To record my self-learning path
+
+## Thanks
+Everything starts from https://csdiy.wiki/. Thanks!
