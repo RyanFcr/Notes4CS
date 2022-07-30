@@ -1,9 +1,10 @@
 """Typing test implementation"""
 
+
 from utils import lower, split, remove_punctuation, lines_from_file
 from ucb import main, interact, trace
 from datetime import datetime
-from collections import Counter
+
 
 ###########
 # Phase 1 #
@@ -110,7 +111,21 @@ def autocorrect(user_word, valid_words, diff_function, limit):
     """
     # BEGIN PROBLEM 5
     "*** YOUR CODE HERE ***"
+    min = diff_function(user_word,valid_words[0],limit)
+    min_s= valid_words[0]
+    if user_word in valid_words:
+        return user_word
+    else:
+        for word in valid_words:
+            if diff_function(user_word,word,limit)< min:
+                min = diff_function(user_word,word,limit) 
+                min_s = word
+        if min > limit:
+            return user_word
+        else:
+            return min_s
     # END PROBLEM 5
+
 
 
 def shifty_shifts(start, goal, limit):
@@ -119,31 +134,103 @@ def shifty_shifts(start, goal, limit):
     their lengths.
     """
     # BEGIN PROBLEM 6
-    assert False, 'Remove this line'
+    
+    def shifty_helper(start,goal,limit,result):
+        if start == '':
+            result += len(goal)
+            # if result > limit:
+            #     return limit
+            return result         
+        elif goal == '':
+            result += len(start)
+            # if result > limit:
+            #     return limit
+            return result
+        else :
+            if start[0] == goal[0]:
+                return shifty_helper(start[1:],goal[1:],limit,result)
+            else:
+                result += 1
+                if result > limit:
+                    return limit + 1
+                return shifty_helper(start[1:],goal[1:],limit,result) 
+    
+    
+    return shifty_helper(start,goal,limit,0)
+    # if start == '' :
+    #     if len(goal) > limit:
+    #         return limit + 1
+    #     return len(goal)
+    # elif goal == '':
+    #     if len(start) > limit:
+    #         return limit + 1
+    #     return len(start)
+    # else:
+    #     if start[0] == goal[0]:
+    #         result = shifty_shifts(start[1:],goal[1:],limit)
+    #         if result > limit:
+    #             return limit +1
+    #         return result
+    #     else:
+    #         result = 1 + shifty_shifts(start[1:],goal[1:],limit)
+    #         if result > limit:
+    #             return limit +1
+    #         return result
     # END PROBLEM 6
 
 
 def pawssible_patches(start, goal, limit):
     """A diff function that computes the edit distance from START to GOAL."""
-    assert False, 'Remove this line'
+    
 
-    if ______________: # Fill in the condition
-        # BEGIN
-        "*** YOUR CODE HERE ***"
-        # END
+    def paw_helper(start,goal,limit,result):
+        if start == '' or goal == '':
+            result += len(start)+len(goal)
+            return result
+        else:
+            if start[0] != goal[0]:
+                result+=1
+                if result > limit:
+                    return limit + 1
+                add_diff = paw_helper(start,goal[1:],limit,result) # Fill in these lines
+                # print("Debug: add",add_diff," Limit:",limit)
+                remove_diff = paw_helper(start[1:],goal,limit,result)
+                substitute_diff = paw_helper(start[1:],goal[1:],limit,result) 
+                # print("Debug: remove",remove_diff," Limit:",limit)
+                # print("Debug: substitute",substitute_diff," Limit:",limit)
+                return min(add_diff,remove_diff,substitute_diff)
+            else:
+                return paw_helper(start[1:],goal[1:],limit,result)
+ 
+    return paw_helper(start,goal,limit,0)
 
-    elif ___________: # Feel free to remove or add additional cases
-        # BEGIN
-        "*** YOUR CODE HERE ***"
-        # END
+    # 两种方法都可以，上方是我的做法，引入一个helper来记录result，过大时提前中断，下面是做完后参考其他人的做法，利用limit减小，是我没有想到的
+    #    
+    # if limit < 0: # Fill in the condition
+    #     # BEGIN
+    #     "*** YOUR CODE HERE ***"
+    #     return 0
+    #     # END
+    # elif start == '': # Feel free to remove or add additional cases
+    #     # BEGIN
+    #     "*** YOUR CODE HERE ***"
+    #     return len(goal)
+    #     # END
+    # elif goal == '':
+    #     return len(start)
+    # else:
+    #     if start[0] != goal[0]:
+    #         add_diff = pawssible_patches(start,goal[1:],limit -1)+1 # Fill in these lines
+    #         # print("Debug: add",add_diff," Limit:",limit)
+    #         remove_diff = pawssible_patches(start[1:],goal,limit - 1) + 1
+    #         substitute_diff = pawssible_patches(start[1:],goal[1:],limit - 1) + 1
+    #         # print("Debug: remove",remove_diff," Limit:",limit)
+    #         # print("Debug: substitute",substitute_diff," Limit:",limit)
+    #         return min(add_diff,remove_diff,substitute_diff)
+    #     else:
+    #         return pawssible_patches(start[1:],goal[1:],limit )
 
-    else:
-        add_diff = ... # Fill in these lines
-        remove_diff = ...
-        substitute_diff = ...
-        # BEGIN
-        "*** YOUR CODE HERE ***"
-        # END
+
 
 
 def final_diff(start, goal, limit):
@@ -159,6 +246,22 @@ def final_diff(start, goal, limit):
 def report_progress(typed, prompt, user_id, send):
     """Send a report of your id and progress so far to the multiplayer server."""
     # BEGIN PROBLEM 8
+    index = 0
+    success = 0
+    sum = len(prompt)
+    for s in typed:
+        if s == prompt[index]:
+            success += 1
+        else:
+            break
+        index += 1
+    progress = success / sum
+    report = {
+        'id':user_id,
+        'progress':progress,
+    }
+    send(report)
+    return progress
     "*** YOUR CODE HERE ***"
     # END PROBLEM 8
 
@@ -186,6 +289,22 @@ def time_per_word(times_per_player, words):
     """
     # BEGIN PROBLEM 9
     "*** YOUR CODE HERE ***"
+    
+    time_list = []
+    
+    index1 = 0
+    while index1 != len(times_per_player):
+        # print("Debug:")
+        index2 = 0
+        list_helper = []
+        while index2 != len(times_per_player[index1]) - 1:
+            list_helper.append(times_per_player[index1][index2+1] - times_per_player[index1][index2] ) 
+            index2 += 1
+            print("Debug:index2",index2)
+        time_list.append(list_helper)
+        index1+=1
+        print("Debug: index1",index1)
+    return game(words,time_list)
     # END PROBLEM 9
 
 
@@ -201,7 +320,25 @@ def fastest_words(game):
     word_indices = range(len(all_words(game)))    # contains an *index* for each word
     # BEGIN PROBLEM 10
     "*** YOUR CODE HERE ***"
+    result_list=[]
+    print("Debug:",player_indices)
+    for index in player_indices:
+        result_list.append([])
+        print("Debug:",index)
+        index += 1
+    print("Debug:",result_list)
+    for word_index  in word_indices:
+        player_index = 0
+        min = time(game,player_index,word_index)
+        min_index = player_index
+        for player_index in player_indices:
+            if time(game,player_index,word_index) < min:
+                min = time(game,player_index,word_index)
+                min_index = player_index
+        result_list[min_index].append(word_at(game,word_index))
+
     # END PROBLEM 10
+    return result_list
 
 
 def game(words, times):
