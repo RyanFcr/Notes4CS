@@ -87,10 +87,6 @@ def make_withdraw(balance, password):
             return 'Incorrect password'
     return withdraw
 
-            
-
-        
-
 
 def repeated(t, k):
     """Return the first value in iterator T that appears K times in a row. Iterate through the items such that

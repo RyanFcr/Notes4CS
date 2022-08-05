@@ -2,6 +2,7 @@
 
 import random
 from re import L
+from readline import insert_text
 from ucb import main, interact, trace
 from collections import OrderedDict
 
@@ -52,6 +53,7 @@ class Insect:
     """An Insect, the base class of Ant and Bee, has armor and a Place."""
 
     damage = 0
+    is_watersafe= False
     # ADD CLASS ATTRIBUTES HERE
 
     def __init__(self, armor, place=None):
@@ -105,6 +107,7 @@ class Ant(Insect):
 
     implemented = False  # Only implemented Ant classes should be instantiated
     food_cost = 0
+    is_doubled = False
     # ADD CLASS ATTRIBUTES HERE
 
     def __init__(self, armor=1):
@@ -178,10 +181,13 @@ class ThrowerAnt(Ant):
         """
         # BEGIN Problem 3 and 4
         x = self.place
-        for _ in range(self.min_range):
-            x = x.entrance 
         index = 0
-        while x != beehive and index < self.max_range:
+        for _ in range(self.min_range):
+            if x.entrance:
+                x = x.entrance 
+                index += 1
+        # 注意max_range = min_range = 6的话，需要能够命中第六个，所以这里需要max_range+1
+        while x != beehive and index < self.max_range+1:
             result = rANTdom_else_none(x.bees)
             if result != None:
                 return result
@@ -218,7 +224,7 @@ class ShortThrower(ThrowerAnt):
     # BEGIN Problem 4
     implemented = True   # Change to True to view in the GUI
     max_range = 3
-    # damage = 1
+    damage = 1
     # END Problem 4
 
 class LongThrower(ThrowerAnt):
@@ -230,7 +236,7 @@ class LongThrower(ThrowerAnt):
     # BEGIN Problem 4
     implemented = True   # Change to True to view in the GUI
     min_range = 5
-    # damage = 1
+    damage = 1
     # END Problem 4
 
 class FireAnt(Ant):
@@ -241,7 +247,7 @@ class FireAnt(Ant):
     food_cost = 5
     # OVERRIDE CLASS ATTRIBUTES HERE
     # BEGIN Problem 5
-    implemented = False   # Change to True to view in the GUI
+    implemented = True   # Change to True to view in the GUI
     # END Problem 5
 
     def __init__(self, armor=3):
@@ -257,6 +263,13 @@ class FireAnt(Ant):
         """
         # BEGIN Problem 5
         "*** YOUR CODE HERE ***"
+        for bee in list(self.place.bees):
+            Insect.reduce_armor(bee,amount)
+        if self.armor-amount<=0:
+            for bee in list(self.place.bees):
+                Insect.reduce_armor(bee,self.damage) 
+        Ant.reduce_armor(self,amount)
+
         # END Problem 5
 
 class HungryAnt(Ant):
@@ -267,28 +280,52 @@ class HungryAnt(Ant):
     food_cost = 4
     # OVERRIDE CLASS ATTRIBUTES HERE
     # BEGIN Problem 6
-    implemented = False   # Change to True to view in the GUI
+    time_to_digest=3
+    implemented = True   # Change to True to view in the GUI
     # END Problem 6
 
     def __init__(self, armor=1):
         # BEGIN Problem 6
         "*** YOUR CODE HERE ***"
+        self.digesting = 0
+        self.is_digest = False
+        Ant.__init__(self, armor)
         # END Problem 6
 
     def eat_bee(self, bee):
         # BEGIN Problem 6
         "*** YOUR CODE HERE ***"
+        bee.reduce_armor(bee.armor) 
+        self.digesting = 0
+        self.is_digest = True
         # END Problem 6
 
     def action(self, gamestate):
         # BEGIN Problem 6
         "*** YOUR CODE HERE ***"
+        if self.is_digest and self.time_to_digest > 0:
+            self.digesting+=1
+            if self.digesting == self.time_to_digest:
+                self.is_digest = False
+                self.digesting = 0
+        else:
+            if self.place.bees:
+                bee = rANTdom_else_none(self.place.bees)
+                self.eat_bee(bee)
         # END Problem 6
 
 
 
 # BEGIN Problem 7
 # The WallAnt class
+class WallAnt(Ant):
+    name = 'Wall'
+    food_cost = 4
+    implemented = True
+
+    def __init__(self, armor=4):
+        Ant.__init__(self,armor)
+
 # END Problem 7
 
 
@@ -300,14 +337,22 @@ class Water(Place):
         its armor to 0."""
         # BEGIN Problem 8
         "*** YOUR CODE HERE ***"
+        Place.add_insect(self,insect)
+        if insect.is_watersafe == False:
+            insect.reduce_armor(insect.armor)
         # END Problem 8
 
 # BEGIN Problem 9
 # The ScubaThrower class
+class ScubaThrower(ThrowerAnt):
+    name = 'Scuba'
+    food_cost = 6
+    is_watersafe = True
+    implemented = True
 # END Problem 9
 
 # BEGIN Problem EC
-class QueenAnt(Ant):  # You should change this line
+class QueenAnt(ScubaThrower):  # You should change this line
 # END Problem EC
     """The Queen of the colony. The game is over if a bee enters her place."""
 
@@ -315,12 +360,20 @@ class QueenAnt(Ant):  # You should change this line
     food_cost = 7
     # OVERRIDE CLASS ATTRIBUTES HERE
     # BEGIN Problem EC
-    implemented = False   # Change to True to view in the GUI
+    implemented = True   # Change to True to view in the GUI
+    have_queen = False
     # END Problem EC
 
     def __init__(self, armor=1):
         # BEGIN Problem EC
         "*** YOUR CODE HERE ***"
+        if self.have_queen == True:
+            ScubaThrower.__init__(self,armor)
+            self.is_true_queen = False
+        else:
+            self.have_queen = True
+            ScubaThrower.__init__(self,armor)
+            self.is_true_queen = True
         # END Problem EC
 
     def action(self, gamestate):
@@ -331,6 +384,11 @@ class QueenAnt(Ant):  # You should change this line
         """
         # BEGIN Problem EC
         "*** YOUR CODE HERE ***"
+        if self.is_true_queen == False:
+            self.reduce_armor(self.armor)
+        else:
+            ScubaThrower.action(self,gamestate)
+
         # END Problem EC
 
     def reduce_armor(self, amount):
@@ -339,7 +397,13 @@ class QueenAnt(Ant):  # You should change this line
         """
         # BEGIN Problem EC
         "*** YOUR CODE HERE ***"
+        if amount >= self.armor:
+            bees_win()
+        Ant.reduce_armor(self,amount)
         # END Problem EC
+
+    def remove_from(self,place):
+        return 
 
 
 
@@ -357,6 +421,7 @@ class Bee(Insect):
 
     name = 'Bee'
     damage = 1
+    is_watersafe = True
     # OVERRIDE CLASS ATTRIBUTES HERE
 
 
