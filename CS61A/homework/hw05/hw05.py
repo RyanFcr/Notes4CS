@@ -1,3 +1,6 @@
+from re import L
+
+
 class VendingMachine:
     """A vending machine that vends some product for some price.
 
@@ -104,9 +107,13 @@ class Mint:
 
     def create(self, kind):
         "*** YOUR CODE HERE ***"
+        return kind(self.year)
+
 
     def update(self):
         "*** YOUR CODE HERE ***"
+        # print("Debug:")
+        self.year = self.current_year
 
 class Coin:
     def __init__(self, year):
@@ -114,6 +121,10 @@ class Coin:
 
     def worth(self):
         "*** YOUR CODE HERE ***"
+        change_worth = Mint.current_year - self.year - 50
+        if change_worth < 0:
+            change_worth = 0
+        return change_worth + self.cents
 
 class Nickel(Coin):
     cents = 5
@@ -138,6 +149,16 @@ def store_digits(n):
     >>> print("Do not use str or reversed!") if any([r in cleaned for r in ["str", "reversed"]]) else None
     """
     "*** YOUR CODE HERE ***"
+    if n == 0:
+        return Link.empty
+    if n < 10:
+        return Link(n)
+    else:
+        len = 1
+        while len <= n:
+            len*=10
+        len = len //10 
+        return Link(n//len,store_digits(n % len))
 
 
 def is_bst(t):
@@ -167,7 +188,51 @@ def is_bst(t):
     """
     "*** YOUR CODE HERE ***"
 
+    def bst_min(t):
+        if t.is_leaf:
+            return t.label
+        else:
+            left_min = bst_min(t.branches[0])
+            if len(t.branches) == 2:
+                right_min = bst_min(t.branches[1])
+                return min(left_min,right_min,t.label)
+            else:
+                return min(t.label,left_min)
 
+
+    def bst_max(t):
+        if t.branches == []:
+            ## 不知道为什么一定要是branches == [],而is_leaf 不行
+            print("Debug: is_leaf",t.label,t.branches)
+            return t.label
+        else:
+            left_max = bst_max(t.branches[0])
+            print("Debug left_max:",left_max)
+            if len(t.branches) == 2:
+                right_max = bst_max(t.branches[1])
+                return max(left_max,right_max,t.label)
+            else:
+                return max(t.label,left_max)
+
+
+    if t == [] or t.is_leaf():
+        return True
+    elif len(t.branches) == 1:
+        return is_bst(t.branches[0])
+    elif len(t.branches) == 2:
+        for b in t.branches:
+            if is_bst(b)==False:
+                return False
+        print("Debug:",bst_max(t.branches[0]),bst_min(t.branches[1]))
+        if t.label < bst_max(t.branches[0]):
+            return False
+        if t.label > bst_min(t.branches[1]):
+            return False
+    else:
+        return False
+    return True
+
+    
 def preorder(t):
     """Return a list of the entries in this tree in the order that they
     would be visited by a preorder traversal (see problem description).
@@ -179,6 +244,10 @@ def preorder(t):
     [2, 4, 6]
     """
     "*** YOUR CODE HERE ***"
+    res = [t.label]
+    for b in t.branches:
+        res += preorder(b)
+    return res
 
 
 def path_yielder(t, value):
@@ -217,10 +286,22 @@ def path_yielder(t, value):
     """
 
     "*** YOUR CODE HERE ***"
-
-    for _______________ in _________________:
-        for _______________ in _________________:
-
+    def in_tree(t,value):
+        if t.is_leaf:
+            return t.label == value
+        else:
+            if t.label == value:
+                return True
+            for b in t.branches:
+                if in_tree(b,value):
+                    return True
+            return False
+    
+    if t.label == value:
+        yield [value]
+    for b in t.branches:
+        for path in path_yielder(b,value):
+            yield [t.label] + path
             "*** YOUR CODE HERE ***"
 
 
@@ -283,7 +364,10 @@ class Tree:
         self.branches = list(branches)
 
     def is_leaf(self):
-        return not self.branches
+        if self.branches == []:
+            return True
+        else:
+            return False
 
     def map(self, fn):
         """
