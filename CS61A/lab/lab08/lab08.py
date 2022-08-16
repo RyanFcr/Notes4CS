@@ -8,6 +8,11 @@ def convert_link(link):
     []
     """
     "*** YOUR CODE HERE ***"
+    if link is Link.empty:
+        return []
+    if link.rest is Link.empty:
+        return [link.first]
+    return [link.first] + convert_link(link.rest)
 
 
 def every_other(s):
@@ -28,6 +33,10 @@ def every_other(s):
     Link(4)
     """
     "*** YOUR CODE HERE ***"
+    if  s is not Link.empty and s.rest is not Link.empty:
+        s.rest = s.rest.rest
+        every_other(s.rest)
+
 
 
 def cumulative_mul(t):
@@ -40,7 +49,14 @@ def cumulative_mul(t):
     Tree(105, [Tree(15, [Tree(5)]), Tree(7)])
     """
     "*** YOUR CODE HERE ***"
-
+    if t.branches != []:
+        branch = []
+        mul = 1
+        for b in t.branches:
+            cumulative_mul(b)
+            mul *= b.label
+        mul *= t.label
+        t.label = mul
 
 def has_cycle(link):
     """Return whether link contains a cycle.
@@ -57,6 +73,13 @@ def has_cycle(link):
     False
     """
     "*** YOUR CODE HERE ***"
+    s = link
+    while True:
+        if link == Link.empty:
+            return False
+        link = link.rest
+        if link == s:
+            return True
 
 def has_cycle_constant(link):
     """Return whether link contains a cycle.
@@ -70,6 +93,22 @@ def has_cycle_constant(link):
     False
     """
     "*** YOUR CODE HERE ***"
+    # 其实这个也是O（1）的
+    # s = link
+    # while True:
+    #     if link == Link.empty:
+    #         return False
+    #     link = link.rest
+    #     if link == s:
+    #         return True
+
+    while link != Link.empty:
+        if hasattr(link,'visited') and link.visited == True:
+            return True
+        link.visited = True
+        link = link.rest
+    return False
+
 
 
 def reverse_other(t):
@@ -86,6 +125,20 @@ def reverse_other(t):
     Tree(1, [Tree(8, [Tree(3, [Tree(5), Tree(4)]), Tree(6, [Tree(7)])]), Tree(2)])
     """
     "*** YOUR CODE HERE ***"
+    # if not t.is_leaf:
+    print("Debug:",t.label)
+    res =[]
+    for b in t.branches:
+        res.append(b.label)
+    index = 0
+    print("Debug:",res)
+    while index < len(t.branches):
+        t.branches[index].label = res[len(res) - index - 1]
+        index += 1
+    for b in t.branches:
+        for bb in b.branches:
+            # print("Debug: nb")
+            reverse_other(bb)
 
 
 class Link:
