@@ -25,6 +25,8 @@ Code is law
 
 - [笔者的笔记](https://k5ms77k0o1.feishu.cn/docx/doxcngKPpRgGsRnbPHuKUepw2Ey)      密码：BKDh
 
+    - 笔者直接下载了PDF到仓库里，习惯看PDF的也可以直接看PDF。由于笔者是用飞书文档记笔记的，所以暂时无法导出md，没有提供md版的文件。
+
 - [WellesSun的笔记](https://github.com/CSWellesSun/CSNotes/tree/main/%E5%8C%BA%E5%9D%97%E9%93%BE%E6%8A%80%E6%9C%AF%E4%B8%8E%E5%BA%94%E7%94%A8/Note)
 
 - [课程Slides](http://zhenxiao.com/blockchain/)
