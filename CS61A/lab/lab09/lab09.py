@@ -1,3 +1,6 @@
+from threading import local
+
+
 def insert_into_all(item, nested_list):
     """Assuming that nested_list is a list of lists, return a new list
     consisting of all the lists in nested_list, but with item added to
@@ -110,16 +113,15 @@ def make_generators_generator(g):
     9
     """
     def gen(i):
-        for ___________ in ___________:
-            if _________________________:
-                _________________________
-            _______________________
-            _______________________
-    __________________________
-    for e in g():
-        ______________________________
-        ______________________________
-
+        for item in g():
+            if i<1:
+                break
+            yield item
+            i=i-1
+    i = 1
+    for it in g():
+        yield gen(i)
+        i += 1
 
 class Button:
     """
@@ -208,15 +210,26 @@ def make_advanced_counter_maker():
     >>> tom_counter('global-count')
     1
     """
-    ________________
-    def ____________(__________):
-        ________________
-        def ____________(__________):
-            ________________
+    global_num = 0
+    def counter_out():
+        local_num = 0
+        def counter_inner(message):
+            nonlocal global_num
+            nonlocal local_num
+            if message == 'count':
+                local_num+=1
+                return local_num
+            if message == 'reset':
+                local_num = 0
+            if message == 'global-count':
+                global_num+=1
+                return global_num
+            if message == 'global-reset':
+                global_num = 0
             "*** YOUR CODE HERE ***"
             # as many lines as you want
-        ________________
-    ________________
+        return counter_inner
+    return counter_out
 
 
 def trade(first, second):
@@ -248,12 +261,14 @@ def trade(first, second):
     """
     m, n = 1, 1
 
-    equal_prefix = lambda: ______________________
-    while _______________________________:
-        if __________________:
+    equal_prefix = lambda: sum(first[:m]) == sum(second[:n])
+    while m<len(first) and n<len(second) and not equal_prefix():
+        if sum(first[:m]) < sum(second[:n]):
             m += 1
+            print("Debug: M",m)
         else:
             n += 1
+            print("Debug: N",n)
 
     if equal_prefix():
         first[:m], second[:n] = second[:n], first[:m]
@@ -287,11 +302,11 @@ def shuffle(cards):
     ['A♡', 'A♢', 'A♤', 'A♧', '2♡', '2♢', '2♤', '2♧', '3♡', '3♢', '3♤', '3♧']
     """
     assert len(cards) % 2 == 0, 'len(cards) must be even'
-    half = _______________
+    half = (len(cards)-1)//2+1
     shuffled = []
-    for i in _____________:
-        _________________
-        _________________
+    for i in range(half):
+        shuffled.append(cards[i])
+        shuffled.append(cards[i+half])
     return shuffled
 
 
@@ -310,15 +325,13 @@ def insert(link, value, index):
     >>> insert(link, 4, 5)
     IndexError
     """
-    if ____________________:
-        ____________________
-        ____________________
-        ____________________
-    elif ____________________:
-        ____________________
+    if index == 0 and link is not Link.empty:
+        link.rest = Link(link.first,link.rest)
+        link.first = value
+    elif link is Link.empty:
+        raise IndexError
     else:
-        ____________________
-
+        insert(link.rest,value,index-1)
 
 
 def deep_len(lnk):
@@ -335,12 +348,12 @@ def deep_len(lnk):
     >>> deep_len(levels)
     5
     """
-    if ______________:
+    if lnk is Link.empty:
         return 0
-    elif ______________:
+    elif not isinstance(lnk,Link):
         return 1
     else:
-        return _________________________
+        return deep_len(lnk.rest)+deep_len(lnk.first)
 
 
 def make_to_string(front, mid, back, empty_repr):
@@ -359,10 +372,10 @@ def make_to_string(front, mid, back, empty_repr):
     '()'
     """
     def printer(lnk):
-        if ______________:
-            return _________________________
+        if lnk is Link.empty:
+            return empty_repr
         else:
-            return _________________________
+            return front+str(lnk.first)+mid+printer(lnk.rest)+back
     return printer
 
 
@@ -383,11 +396,11 @@ def prune_small(t, n):
     >>> t3
     Tree(6, [Tree(1), Tree(3, [Tree(1), Tree(2)])])
     """
-    while ___________________________:
-        largest = max(_______________, key=____________________)
-        _________________________
-    for __ in _____________:
-        ___________________
+    while len(t.branches)>n:
+        largest = max(t.branches, key=lambda t:t.label)
+        t.branches.remove(largest)
+    for b in t.branches:
+        prune_small(b,n)
 
 
 class Link:
